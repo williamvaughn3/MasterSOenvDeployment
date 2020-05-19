@@ -1,0 +1,54 @@
+#This template is based on the SECO recommended network configuration
+#The information the values are controled by the master Node.conf file
+
+#CONFIG for MASTER SENSOR _NODE_ initiated by user: _USERNAME_
+
+#Script will copy final products to: 
+#_HOMEDIR_ sosetup.conf
+#/etc/network/interfaces
+
+#additionally the files will be stored as a backup in the 
+#/home/conf.bak with appended node number to file name
+
+#all interfaces found on this system are _NUM_IF_: _ALL_IF_
+#Domain (value is at top of the install.sh script) is: _DOMAIN_
+#HOMENET is _NETID_ _NETMASK_ or _HOMENET_
+#_PASS_  (Check to ensure the password was sanitized)
+
+# View Security Onion Documentation at: https://securityonionsolutions.com/
+# Or support their Non-profit and purchase the hardcopy on Amazon
+
+# If organizational resources permit, highly recommend onsite training
+# Very well worth the money, highly skilled technicians, instructors, and material
+
+# Even if you are familiar, you will walk away feeling enlightened, as if you have been 
+# eating Onion Soup with a fork.
+# You'll leave the class with a spoon!
+
+auto lo
+iface lo inet loopback
+
+# Management interface using STATIC IP (instead of DHCP)
+auto _MGMT_
+iface _MGMT_ inet static
+  address _IPADDr_
+  gateway _GW_
+  netmask _NETMASK_
+  network _NETID_
+  # If running Security Onion 14.04, you'll need to configure DNS here
+  dns-nameservers _DNSSVR_
+  post-up echo 1 > /proc/sys/net/ipv6/conf/$IFACE/disable_ipv6
+  
+# Connected to TAP or SPAN port for traffic monitoring
+auto _SNIFF_
+iface _SNIFF_ inet manual
+  up ifconfig $IFACE -arp up
+  up ip link set $IFACE promisc on
+  down ip link set $IFACE promisc off
+  down ifconfig $IFACE down
+  post-up for i in rx tx sg tso ufo gso gro lro; do ethtool -K $IFACE $i off; done
+  # If running Security Onion 14.04, you should also disable IPv6 as follows:
+  post-up echo 1 > /proc/sys/net/ipv6/conf/$IFACE/disable_ipv6"
+  
+
+
