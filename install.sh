@@ -361,6 +361,7 @@ nohup sleep 5 &
 mv "$HOMEDIR"/sosetup.conf /root/setupback/SO-AUTOMATED.conf
 nohub sleep 5 &
 
+sed -i 's,
 
 chmod 760 /etc/hosts
 chmod 760 /etc/hostname
@@ -372,7 +373,7 @@ sed -i "s/$PASS/---PASSWORD REMOVED----/g" /root/setupback/*
 
 header " Create User Password for Squert / Kibana / Squil "
 
-so-add
+so-user-add
 
 nohub sleep 1 &
 #####
