@@ -2,7 +2,6 @@
 
 #bill.000.vaughn@gmail.com
 #04MAY2020
-
 #Updated 15MAY2019
 
 echo $HOME >> ./HOMEDIR.t
@@ -15,10 +14,10 @@ echo $HOME >> ./HOMEDIR.t
 
 ####
 #----------------
-#  Glob Variables
+#  Vars
 #----------------
 ####
-DOMAIN="static.foo.com"
+DOMAIN="1bct101ab.army.blah.blah"
 banner="========================================================================="
 
 #-----------------------------------------------------------------------------------#
@@ -54,7 +53,13 @@ example1 sudo ./install TCN8675309
 	-- Node.conf contains the paramaters to be used for setup
 	
 example2 sudo ./install -h
-	-- Bring up this menu	"
+	-- Bring up this menu	
+	
+The current values in the Node.conf file are:
+"
+awk -F: '{print $2}' Node.conf;
+
+	
 additional_info;	
 }
 additional_info(){
@@ -137,7 +142,7 @@ sed 's/^#/4/' /etc/cron.d/nsm-watchdog
 NodeSelect(){
 if egrep -i "$NODE" Node.conf > t.t
 then
-	awk -F: '{print $1 $2 $3 $4 $5 $6 $7}'  t.t > Node.t; echo "NODE CONFIG"; cat t.t; sleep 1
+	awk -F: '{print $1 $2 $3 $4 $5 $6 $7}'  t.t > Node.t; echo "NODE CONFIG"; cat t.t; sleep 10s;
 else
 	echo "A record for $NODE was not found.";
 	header "		INFO";
@@ -181,13 +186,11 @@ IPprefix_by_netmask () {
 	}
 ####
   
-
-
 ####
  
 ####
 #Create Variables Validation or poss. alt. coa ...mtf
-#not currently used
+#not currently used, was used for
 ####
 createTempConfigVars(){
 echo "UNIT=$UNIT">>config.t
@@ -229,8 +232,7 @@ sed -i "s/_USERNAME_/$USERNAME/g" ./tempConfig.t
 sed -i "s/_DOMAIN_/$DOMAIN/g" ./tempConfig.t
 sed -i "s/_DNSSVR_/$DNSSVR/g" ./tempConfig.t
 sed -i "s/_PASS_/$PASS/g" ./tempConfig.t
-
-  }
+    }
 ####  
 
 ####
@@ -240,6 +242,8 @@ UFW_FWConfig(){
 # Firewall rules for Splunk forwarding 8089 9996 8000
 # Below are examples 
 # Splunk for splunk w/ links to all master sensors in dashboard
+# ufw allow from any to 131.169/32 to any port 22/tcp,80/tcp,443/tcp,8000,8089,9996
+# ufw allow from 131.169/28 port 22/tcp,80/tcp,443/tcp
 # optionally the smarter option is to run sudo so-allow after script completes 
 # for the common wazuh, syslog, ect.
 # May want to add to the Node.conf or some other thing later
@@ -250,19 +254,39 @@ UFW_FWConfig(){
 ####
 	#${SOCSubnet}
 
+	ufw allow from xxx.xxx.220.161/27 to any port 7743
 	
-	ufw allow from 111.111.111.111/32 to any port 22
-	ufw allow from 111.111.111.111/32 to any port 80
-	ufw allow from 111.111.111.111/32 to any port 443
-	ufw allow from 111.111.111.111/32 to any port 7743
-	ufw allow from 111.111.111.111/32 to any port 8000
-	ufw allow from 111.111.111.111/32 to any port 8089
-	ufw allow from 111.111.111.111/32 to any port 9996
+	ufw allow from xxx.xxx.131.169/32 to any port 22
+	ufw allow from xxx.xxx.131.169/32 to any port 80
+	ufw allow from xxx.xxx.131.169/32 to any port 443
+	ufw allow from xxx.xxx.131.169/32 to any port 7743
+	ufw allow from xxx.xxx.131.169/32 to any port 8000
+	ufw allow from xxx.xxx.131.169/32 to any port 8089
+	ufw allow from xxx.xxx.131.169/32 to any port 9996
 
-	ufw allow from 111.111.111.111/32 to any port 22
-	ufw allow from 111.111.111.111/32 to any port 80
-	ufw allow from 111.111.111.111/32 to any port 443
-	ufw allow from 111.111.111.111/32 to any port 7743
+
+	#Splunk Forwarder and Access
+	ufw allow from xxx.xxx.134.164/32 to any port 22
+	ufw allow from xxx.xxx.134.164/32 to any port 443
+	ufw allow from xxx.xxx.134.164/32 to any port 7743
+	ufw allow from xxx.xxx.134.164/32 to any port 8000
+	ufw allow from xxx.xxx.134.164/32 to any port 8089
+	ufw allow from xxx.xxx.134.164/32 to any port 9996
+
+	ufw allow from xxx.xxx.131.168/29 to any port 22
+	ufw allow from xxx.xxx.131.168/29 to any port 80
+	ufw allow from xxx.xxx.131.168/29 to any port 443
+	ufw allow from xxx.xxx.131.168/29 to any port 7743
+	
+	ufw allow from xxx.xxx.134.166/32 to any port 22
+	ufw allow from xxx.xxx.134.166/32 to any port 80
+	ufw allow from xxx.xxx.134.166/32 to any port 443
+	ufw allow from xxx.xxx.134.166/32 to any port 7743
+	
+	ufw allow from xxx.xxx.134.167/32 to any port 22
+	ufw allow from xxx.xxx.134.167/32 to any port 80
+	ufw allow from xxx.xxx.134.167/32 to any port 443
+	ufw allow from xxx.xxx.134.167/32 to any port 7743
     }
 ####
 
@@ -332,56 +356,112 @@ USERNAME=`head -n 1 HOMEDIR.t | cut -d"/" -f3`
 #PASS=`echo $mps`
 NEWSVRNAME=`echo $UNIT"-"$NODE"-SO"`
 CIDR=$(IPprefix_by_netmask "$NETMASK";)
-
-IFS=. read -r i1 i2 i3 i4 <<< "$IP"
+IFS=. read -r i1 i2 i3 i4 <<< "$IPADDr"
 IFS=. read -r m1 m2 m3 m4 <<< "$NETMASK"
-NETID="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$((i4 & m4))"
+NETID=`printf "%d.%d.%d.%d" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" "$((i4 & m4))"`
+HOMENET="$NETID$CIDR"
+
+NetworkCntl stop
 
 #Replace The /etc/network/interfaces file with configuration
 stageTemplate ./interfaces-template 
 
 cat ./tempConfig.t
-mv ./tempConfig.t /root/setupback/interfaces-generated.conf
-mv -f ./tempConfig.t /etc/network/interfaces
+mkdir /root/setupback/
+cp ./tempConfig.t /root/setupback/interfaces-generated.conf
+mv ./tempConfig.t /etc/network/interfaces
 
 NetworkCntl start
-nohup sleep 2 &
 
-#FW Stuff
 header " Creating Firewall rules."
 UFW_FWConfig
 
 stageTemplate sosetuptemplate.conf 
 mv tempConfig.t "$HOMEDIR"/sosetup.conf
 
-
 sosetup -f "$HOMEDIR"/sosetup.conf
-nohup sleep 5 &
+nohup sleep 7 &
 
 mv "$HOMEDIR"/sosetup.conf /root/setupback/SO-AUTOMATED.conf
-nohub sleep 5 &
+
+#rm -rf /etc/nsm/rules/local.rules
+#cat ./local.rules >> /etc/nsm/rules/local.rules
+
+#using a suricata template
+
+#updatedb
+#rm -f /etc/nsm/rules/threshold.conf
+#YAML=`locate suricata.yaml | grep ens`
+#mv ./suricata.yaml "$YAML"
+#mv ./threshold.conf /etc/nsm/rules/threshold.conf
+
+#####
+
+so-user-add
 
 
+sed -i "s/"elasticsearch.requestTimeout: 30000"/"elasticsearch.requestTimeout: 120000"/g" /etc/kibana/kibana.yml
+
+sed -i "s/"@load frameworks/files/detect-MHR"/"#@load frameworks/files/detect-MHR"/g" /opt/bro/share/bro/policy/local.bro
+
+# Sensor Names do not change on name update below
+# still need to look into the nsm sensor stuff
+# to see if anything breaks it
+# not an issue for our installation
+# as we can just define the host in the
+# forwarded logs
+
+nohup sleep 5 &
 
 chmod 760 /etc/hosts
 chmod 760 /etc/hostname
 echo $NEWSVRNAME > /etc/hostname
 sed -i '2d /etc/hosts'
 sed -i "2i 127.0.1.1   ${NEWSVRNAME}" /etc/hosts
-rm -rf ./*.t
 sed -i "s/$PASS/---PASSWORD REMOVED----/g" /root/setupback/*
 
-header " Create User Password for Squert / Kibana / Squil "
+#tar xvzf splunkforwarder-Linux-x86_64.tgz -C /opt
+#cd $SPLUNK_HOME/bin ./splunk start
 
-so-user-add
 
-nohub sleep 1 &
-#####
+#cd $SPLUNK_HOME/bin ./splunk start --accept-license
 
+#useradd <name>
+#usermod -a -G <name> <name>
+#cd $SPLUNK_HOME | chown -R root:<name>
+#cd $SPLUNK_HOME/bin/splunk enable boot-start user=<name>
+#./splunk add forward-server <ip:port> -auth <name>
+# echo "		######Begin deploy.conf config Applicable for Devices######
+#		[deployment-client]
+#		[target-broker:deploymentServer]
+#		targetUri = x.x.x.x:8089
+#		clientName = <server>-<instance>" > /opt/splunkfowarder/etc/system/local/deploy.conf
+
+#./splunk set deploy-poll <ip:port>
+#./splunk restart
+
+#usermodd -a -G squil splunk
+#usermodd -a -G ossec splunk
+
+########
+#- example of the log in the splunk local/inputs.conf file
+#		####conn log####
+#		[monitor:///nsm/bro/logs/current/conn.log]
+#		disabled=0
+#		sourcetype=bro:conn:json
+#		whitelist=\.log$
+#		index=security_onion
+#		####Conn end######
+########
+
+
+
+
+
+rm -rf ./*.t
 
 reboot
 
 exit
 fi
 exit 0;
-
